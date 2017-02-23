@@ -6,8 +6,8 @@ public class CalculadorPi {
 	private static double anchuraIntervalo;
 
 	final static long INTERVALOS = 10000000000L;
-	final static long INDEX = INTERVALOS / Runtime.getRuntime().availableProcessors();
-	double fragmentosPi;
+	final static int PROCESSORS = Runtime.getRuntime().availableProcessors();
+	final static long INDEX = INTERVALOS / PROCESSORS;
 
 
 	public CalculadorPi(long numIntervalos) {
@@ -23,14 +23,13 @@ public class CalculadorPi {
 	}
 
 	public double inicializarThreads() {
-		int processors = Runtime.getRuntime().availableProcessors();
-		Thread[] threads = new Thread[processors];
-		for (int i = 0; i < processors; i++) {
+		Thread[] threads = new Thread[PROCESSORS];
+		for (int i = 0; i < PROCESSORS; i++) {
 			threads[i] = new Thread(new PiCalculatorThread(i * INDEX, (i + 1) * INDEX));
 			threads[i].start();
 		}
 		try {
-			for (int i = 0; i < processors; i++) {
+			for (int i = 0; i < PROCESSORS; i++) {
 				threads[i].join();
 			}
 
