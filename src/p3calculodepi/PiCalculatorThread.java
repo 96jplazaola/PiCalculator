@@ -1,26 +1,30 @@
 package p3calculodepi;
 
-import java.util.concurrent.Callable;
+public class PiCalculatorThread implements Runnable {
 
-/**
- * Created by joanes on 2/21/17.
- */
-public class PiCalculatorThread implements Callable<Double> {
+	private long indexStart;
+	private long indexEnd;
+	private double  valorPi;
 
-	private Long startIndex;
-	private Long endIndex;
+	public PiCalculatorThread(long l, long m) {
+		this.indexStart = l;
+		this.indexEnd = m;
+		this.valorPi = 0.0;
 
-	public PiCalculatorThread(Long startIndex, Long endIndex) {
-		this.startIndex = startIndex;
-		this.endIndex = endIndex;
 	}
 
 	@Override
-	public Double call() {
-		Double pi = 0.0;
-		for (long i = startIndex; i < endIndex; i++) {
-			pi += CalculadorPi.calcularPartePi(i);
+	public void run() {
+		double fragmentoPi = 0.0;
+		for (long j = indexStart; j < indexEnd; j++) {
+			fragmentoPi = CalculadorPi.calcularPi(j);
+
+			this.valorPi += fragmentoPi;
+
 		}
-		return pi;
+		CalculadorPi.addValuePi(valorPi);
 	}
+
+
+
 }
