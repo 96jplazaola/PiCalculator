@@ -1,11 +1,16 @@
 package p3calculodepi;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+
+
 public class CalculadorPi {
 	final static double REFERENCIAPI = 3.14159265358979323846;
 	static double valorPi;
 	private static double anchuraIntervalo;
 
-	final static long INTERVALOS = 10000000000L;
+	final static long INTERVALOS = 1000000000L;
 	final static int PROCESSORS = Runtime.getRuntime().availableProcessors();
 	final static long INDEX = INTERVALOS / PROCESSORS;
 
@@ -23,18 +28,19 @@ public class CalculadorPi {
 	}
 
 	public double inicializarThreads() {
-		Thread[] threads = new Thread[PROCESSORS];
+		ForkJoinPool pool = new ForkJoinPool(PROCESSORS);
+		ForkJoinTask<Double>[] tasks = new ForkJoinTask[PROCESSORS];
 		for (int i = 0; i < PROCESSORS; i++) {
-			threads[i] = new Thread(new PiCalculatorThread(i * INDEX, (i + 1) * INDEX));
-			threads[i].start();
+			tasks[i] = pool.submit(new PiCalculatorThread(INDEX * i, INDEX * (i + 1)));
 		}
-		try {
-			for (int i = 0; i < PROCESSORS; i++) {
-				threads[i].join();
+		pool.shutdown();
+
+		for (final ForkJoinTask<Double> t : tasks) {
+			try {
+				valorPi += t.get();
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e);
 			}
-
-		} catch (InterruptedException e) {
-
 		}
 
 		return valorPi * anchuraIntervalo;
@@ -52,8 +58,5 @@ public class CalculadorPi {
 
 	}
 
-	public static synchronized void addValuePi(double valorPi) {
-		CalculadorPi.valorPi += valorPi;
-	}
 
 }

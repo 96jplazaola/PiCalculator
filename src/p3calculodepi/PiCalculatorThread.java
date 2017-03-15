@@ -1,10 +1,12 @@
 package p3calculodepi;
 
-public class PiCalculatorThread implements Runnable {
+import java.util.concurrent.Callable;
+
+public class PiCalculatorThread implements Callable<Double> {
 
 	private long indexStart;
 	private long indexEnd;
-	private double  valorPi;
+	private double valorPi;
 
 	public PiCalculatorThread(long l, long m) {
 		this.indexStart = l;
@@ -14,7 +16,7 @@ public class PiCalculatorThread implements Runnable {
 	}
 
 	@Override
-	public void run() {
+	public Double call() {
 		double fragmentoPi = 0.0;
 		for (long j = indexStart; j < indexEnd; j++) {
 			fragmentoPi = CalculadorPi.calcularPi(j);
@@ -22,9 +24,8 @@ public class PiCalculatorThread implements Runnable {
 			this.valorPi += fragmentoPi;
 
 		}
-		CalculadorPi.addValuePi(valorPi);
+		return valorPi;
 	}
-
 
 
 }
