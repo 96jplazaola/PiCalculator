@@ -1,13 +1,18 @@
 package p3calculodepi;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.*;
+
 public class CalculadorPi {
 	final static double REFERENCIAPI = 3.14159265358979323846;
 	static double valorPi;
 	private static double anchuraIntervalo;
 
-	final static long INTERVALOS = 10000000000L;
-	final static int PROCESSORS = Runtime.getRuntime().availableProcessors();
+	final static long INTERVALOS = 100000;
+	final static int PROCESSORS = 1000;
 	final static long INDEX = INTERVALOS / PROCESSORS;
+	static ExecutorService pool;
 
 
 	public CalculadorPi(long numIntervalos) {
@@ -23,18 +28,28 @@ public class CalculadorPi {
 	}
 
 	public double inicializarThreads() {
-		Thread[] threads = new Thread[PROCESSORS];
+
+		pool = Executors.newFixedThreadPool(PROCESSORS);
+		Set<Future<Double>> set = new HashSet<>();
 		for (int i = 0; i < PROCESSORS; i++) {
-			threads[i] = new Thread(new PiCalculatorThread(i * INDEX, (i + 1) * INDEX));
-			threads[i].start();
+			Future<Double> future = pool.submit(new PiCalculatorThread(i * INDEX, (i + 1) * INDEX));
+			set.add(future);
 		}
-		try {
-			for (int i = 0; i < PROCESSORS; i++) {
-				threads[i].join();
+		for (Future<Double> future : set) {
+			try {
+				valorPi += future.get();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
 			}
+		}
 
+		pool.shutdown();
+		try {
+			pool.awaitTermination(20, TimeUnit.MINUTES);
 		} catch (InterruptedException e) {
-
+			e.printStackTrace();
 		}
 
 		return valorPi * anchuraIntervalo;
@@ -52,8 +67,5 @@ public class CalculadorPi {
 
 	}
 
-	public static synchronized void addValuePi(double valorPi) {
-		CalculadorPi.valorPi += valorPi;
-	}
 
 }
